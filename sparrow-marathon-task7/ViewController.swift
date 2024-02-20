@@ -7,72 +7,70 @@
 
 import UIKit
 
-class ViewController: UIViewController, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout {
-    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        1
-    }
+class ViewController: UIViewController, UIScrollViewDelegate {
     
-    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "cell", for: indexPath)
-        return cell
-    }
-    
-    
-    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-        CGSize(width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.height)
-    }
+    // MARK: - Private properties
     
     private let imageView = UIImageView(image: UIImage(named: "Swon6p_RU6s"))
+    private let contentView = UIView()
     
-    private let layout: UICollectionViewFlowLayout = {
-        let layout = UICollectionViewFlowLayout()
-        layout.scrollDirection = .vertical
-        return layout
+    private let scrollView: UIScrollView = {
+        let scroll = UIScrollView()
+        scroll.contentSize = CGSize(width: UIScreen.main.bounds.size.width, height: UIScreen.main.bounds.size.height * 2)
+         scroll.contentInsetAdjustmentBehavior = .never
+        return scroll
     }()
-//    let layout = UICollectionViewFlowLayout.vertical(with: minimumLineSpacing, isStretching: isStretching)
-//    private lazy var collectionView = UICollectionView.init(frame: .zero, collectionViewLayout: layout)
     
-    private lazy var collectionView: UICollectionView = {
-        let collection = UICollectionView(frame: .zero, collectionViewLayout: layout)
-        collection.register(UICollectionViewCell.self, forCellWithReuseIdentifier: "cell")
-        return collection
-    }()
+    lazy var scrollViewTopAnchor: NSLayoutConstraint = scrollView.topAnchor.constraint(equalTo: imageView.bottomAnchor)
+    lazy var imageViewHeightAnchor: NSLayoutConstraint = imageView.heightAnchor.constraint(equalToConstant: 270)
 
+    // MARK: - UIViewController lifecycle
+    
     override func viewDidLoad() {
         super.viewDidLoad()
-        // Do any additional setup after loading the view.
-        setupUI()
-        
-        collectionView.dataSource = self
-        collectionView.delegate = self
-    }
 
+        setupUI()
+    }
+    
+    // MARK: - Private methods
 
     private func setupUI() {
+        view.backgroundColor = .black
+        
         imageView.translatesAutoresizingMaskIntoConstraints = false
-        collectionView.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(imageView)
-        view.addSubview(collectionView)
+        
+        scrollView.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(scrollView)
+        
+        
+        scrollView.indicatorStyle = .white
+        scrollView.backgroundColor = .black
         
         imageView.contentMode = .scaleAspectFill
         
-        collectionView.showsVerticalScrollIndicator = true
-        collectionView.indicatorStyle = .black
-        
-        imageView.layer.borderColor = UIColor.red.cgColor
-        imageView.layer.borderWidth = 1
-        
         NSLayoutConstraint.activate([
-            imageView.topAnchor.constraint(equalTo: view.topAnchor),
+            imageView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
             imageView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             imageView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            imageView.heightAnchor.constraint(equalToConstant: 300),
+            imageViewHeightAnchor,
             
-            collectionView.topAnchor.constraint(equalTo: imageView.bottomAnchor),
-            collectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            collectionView.heightAnchor.constraint(equalToConstant: UIScreen.main.bounds.height)
+            scrollViewTopAnchor,
+            scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            scrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            scrollView.heightAnchor.constraint(equalToConstant: UIScreen.main.bounds.size.height * 2 - 100),
         ])
+        
+        scrollView.delegate = self
+    }
+    
+    func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        let contentOffsetHeight = scrollView.contentOffset.y
+        
+        imageViewHeightAnchor.constant = 270 - contentOffsetHeight
+
+        if contentOffsetHeight > 0 {
+            scrollViewTopAnchor.constant = -contentOffsetHeight
+        }
     }
 }
-
